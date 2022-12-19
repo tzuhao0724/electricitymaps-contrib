@@ -40,10 +40,10 @@ def test_parser(zone: ZoneKey, data_type, target_datetime):
     \b
     Examples
     -------
-    >>> poetry run test_parser FR
-    >>> poetry run test_parser FR production
-    >>> poetry run test_parser "NO-NO3->SE" exchange
-    >>> poetry run test_parser GE production --target_datetime="2022-04-10 15:00"
+    # >>> poetry run test_parser FR
+    # >>> poetry run test_parser FR production
+    # >>> poetry run test_parser "NO-NO3->SE" exchange
+    # >>> poetry run test_parser GE production --target_datetime="2022-04-10 15:00"
 
     """
     if target_datetime:
@@ -131,4 +131,4 @@ def test_parser(zone: ZoneKey, data_type, target_datetime):
 
 if __name__ == "__main__":
     # pylint: disable=no-value-for-parameter
-    print(test_parser())
+    print(test_parser('US','exchangeForecast','2022-12-16 15:00'))
