@@ -10,14 +10,17 @@ import arrow
 from requests import Session
 from parsers.func import get_data
 class get_data_BO(get_data):
-    def get_data(self,session=None,url:str=" "):
-        r= session or Session()
-        r = r.get(url).text
-        return r
-    def get_data(self,session=None,url:str=" ",header={}):
-        r= session or Session()
-        r = r.get(url,headers=header)
-        return r.text.replace("ï»¿", "")
+    def get_data(self,session=None,url:str=" ",header=None):
+        if header:
+            r = session or Session()
+            reps = r.get(url,headers=header).text.replace("ï»¿", "")
+            return reps
+
+        else:
+            r = session or Session()
+            reps = r.get(url).text
+            return reps
+
 
 reader = get_data_BO()
 tz_bo = "America/La_Paz"
@@ -64,8 +67,8 @@ def fetch_data(
     # XSRF token for the initial request
     xsrf_token = extract_xsrf_token(r)
 
-
     resp = reader.get_data(session= session,url= url_init.format(formatted_dt),header={"x-csrf-token": xsrf_token})
+
 
     hour_rows = json.loads(resp)["data"]
 

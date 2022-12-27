@@ -7,6 +7,8 @@ from typing import List, Optional
 
 import arrow
 from requests import Session
+from parsers.func import get_data
+reader = get_data()
 
 
 def _get_ns_info(requests_obj, logger: Logger):
@@ -39,10 +41,10 @@ def _get_ns_info(requests_obj, logger: Logger):
     }
 
     mix_url = "https://www.nspower.ca/library/CurrentLoad/CurrentMix.json"
-    mix_data = requests_obj.get(mix_url).json()
+    mix_data = reader.get_data(requests_obj,mix_url,"json")
 
     load_url = "https://www.nspower.ca/library/CurrentLoad/CurrentLoad.json"
-    load_data = requests_obj.get(load_url).json()
+    load_data = reader.get_data(requests_obj,mix_url,"json")
 
     production = []
     imports = []
@@ -162,9 +164,9 @@ def fetch_production(
             "This parser is unable to give information more than 24 hours in the past"
         )
 
-    r = session or Session()
 
-    production, imports = _get_ns_info(r, logger)
+
+    production, imports = _get_ns_info(session, logger)
 
     return production
 
@@ -195,8 +197,7 @@ def fetch_exchange(
     if sorted_zone_keys != "CA-NB->CA-NS":
         raise NotImplementedError("This exchange pair is not implemented")
 
-    requests_obj = session or Session()
-    _, imports = _get_ns_info(requests_obj, logger)
+    _, imports = _get_ns_info(session, logger)
 
     return imports
 

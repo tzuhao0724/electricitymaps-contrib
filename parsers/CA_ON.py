@@ -12,7 +12,8 @@ import arrow
 # pandas processes tabular data
 import pandas as pd
 from requests import Session
-
+from parsers.func import get_data
+reader = get_data()
 """
 Some notes about timestamps:
 
@@ -87,9 +88,9 @@ def _fetch_ieso_xml(
         .replace(hour=0, minute=0, second=0, microsecond=0)
     )
 
-    r = session or Session()
+
     url = url_template.format(YYYYMMDD=dt.format("YYYYMMDD"))
-    response = r.get(url)
+    response = reader.get_data(session,url)
 
     if not response.ok:
         # Data is generally available for past 3 months. Requesting files older than this

@@ -19,7 +19,14 @@ from requests import Session
 
 # Local library imports
 from parsers.lib import validation
+from parsers.func import get_data
 
+class get_data_CA_AB(get_data):
+    def get_data(self,session=None,url:str=" ",Format:str = None):
+        r= session or Session()
+        r = r.get(url, params={"contentType": "csv"})
+        return r
+reader = get_data_CA_AB()
 DEFAULT_ZONE_KEY = "CA-AB"
 MINIMUM_PRODUCTION_THRESHOLD = 10  # MW
 TIMEZONE = "Canada/Mountain"
@@ -37,10 +44,7 @@ def fetch_exchange(
     """Request the last known power exchange (in MW) between two countries."""
     if target_datetime:
         raise NotImplementedError("Currently unable to scrape historical data")
-    session = session or Session()
-    response = session.get(
-        f"{URL_STRING}/CSDReportServlet", params={"contentType": "csv"}
-    )
+    response = reader.get_data(session,f"{URL_STRING}/CSDReportServlet")
     interchange = dict(csv.reader(response.text.split("\r\n\r\n")[4].splitlines()))
     flows = {
         f"{DEFAULT_ZONE_KEY}->CA-BC": interchange["British Columbia"],
@@ -68,10 +72,7 @@ def fetch_price(
     """Request the last known power price of a given country."""
     if target_datetime:
         raise NotImplementedError("Currently unable to scrape historical data")
-    session = session or Session()
-    response = session.get(
-        f"{URL_STRING}/SMPriceReportServlet", params={"contentType": "csv"}
-    )
+    response = reader.get_data(session, f"{URL_STRING}/SMPriceReportServlet")
     return [
         {
             "currency": "CAD",
@@ -94,10 +95,7 @@ def fetch_production(
     """Request the last known production mix (in MW) of a given country."""
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
-    session = session or Session()
-    response = session.get(
-        f"{URL_STRING}/CSDReportServlet", params={"contentType": "csv"}
-    )
+    response = reader.get_data(session, f"{URL_STRING}/CSDReportServlet")
     generation = {
         row[0]: {
             "MC": float(row[1]),  # maximum capability

@@ -4,10 +4,10 @@
 from datetime import datetime
 from logging import Logger, getLogger
 from typing import Optional
-
+from parsers.func import get_data
 import arrow
 from requests import Session
-
+reader = get_data()
 # More info:
 # https://www.bchydro.com/energy-in-bc/our_system/transmission/transmission-system/actual-flow-data.html
 
@@ -25,9 +25,9 @@ def fetch_exchange(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    r = session or Session()
+
     url = "https://www.bchydro.com/bctc/system_cms/actual_flow/latest_values.txt"
-    response = r.get(url)
+    response = reader.get_data(session,url)
     obj = response.text.split("\r\n")[1].replace("\r", "").split(",")
 
     datetime = arrow.get(

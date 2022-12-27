@@ -7,6 +7,8 @@ import arrow
 from requests import Session
 
 from .lib.validation import validate
+from parsers.func import get_data
+reader = get_data()
 
 URL = "http://tr.ons.org.br/Content/GetBalancoEnergetico/null"
 SOURCE = "ons.org.br"
@@ -93,7 +95,7 @@ def fetch_production(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    data = get_data(session)
+    data = reader.get_data(session,URL)
     timestamp, production = production_processor(data, zone_key)
 
     datapoint = {
@@ -124,7 +126,7 @@ def fetch_exchange(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    data = get_data(session)
+    data = reader.get_data(session,URL)
     dt = arrow.get(data["Data"]).datetime
     sorted_zone_keys = "->".join(sorted([zone_key1, zone_key2]))
 
@@ -156,7 +158,7 @@ def fetch_region_exchange(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    data = get_data(session)
+    data = reader.get_data(session,URL)
     dt = arrow.get(data["Data"]).datetime
     sorted_regions = "->".join(sorted([zone_key1, zone_key2]))
 
