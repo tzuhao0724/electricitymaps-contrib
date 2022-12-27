@@ -8,7 +8,18 @@ from typing import List, NamedTuple, Optional
 
 import arrow
 from requests import Session
+from parsers.func import get_data
+class get_data_BO(get_data):
+    def get_data(self,session=None,url:str=" "):
+        r= session or Session()
+        r = r.get(url).text
+        return r
+    def get_data(self,session=None,url:str=" ",header={}):
+        r= session or Session()
+        r = r.get(url,headers=header)
+        return r.text.replace("ï»¿", "")
 
+reader = get_data_BO()
 tz_bo = "America/La_Paz"
 
 SOURCE = "cndc.bo"
@@ -41,20 +52,22 @@ def fetch_data(
         dt = arrow.now(tz=tz_bo)
         print("current dt", dt)
 
-    r = session or Session()
+
 
     # Define actual and previous day (for midnight data).
     formatted_dt = dt.format("YYYY-MM-DD")
 
     # initial path for url to request
     url_init = "https://www.cndc.bo/gene/dat/gene.php?fechag={0}"
+    r = reader.get_data(session= session,url= "https://www.cndc.bo/gene/index.php")
 
     # XSRF token for the initial request
-    xsrf_token = extract_xsrf_token(r.get("https://www.cndc.bo/gene/index.php").text)
+    xsrf_token = extract_xsrf_token(r)
 
-    resp = r.get(url_init.format(formatted_dt), headers={"x-csrf-token": xsrf_token})
 
-    hour_rows = json.loads(resp.text.replace("ï»¿", ""))["data"]
+    resp = reader.get_data(session= session,url= url_init.format(formatted_dt),header={"x-csrf-token": xsrf_token})
+
+    hour_rows = json.loads(resp)["data"]
 
     result: List[HourlyProduction] = []
 

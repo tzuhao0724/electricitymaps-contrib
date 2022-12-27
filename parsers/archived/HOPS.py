@@ -11,7 +11,9 @@ from typing import Optional, Union
 import arrow
 import pandas as pd
 from requests import Session
+from parsers.func import get_data
 
+Reader = get_data()
 URL = "https://www.hops.hr/Home/PowerExchange"
 
 
@@ -23,23 +25,22 @@ def fetch_solar_production(
     to get Solar power production in MW.
     :param feed_date: date_time string from the original HOPS feed
     """
-    r = session or Session()
+
 
     dt = datetime.strptime(feed_date, "%Y-%m-%d %H:%M:%S")
     # Get all available files
     dates_url = (
         "https://files.hrote.hr/files/EKO_BG/FORECAST/SOLAR/FTP/TEST_DRIVE/dates.json"
     )
-    response = r.get(dates_url)
-    dates = response.json()
+    dates = Reader.get_data(session,dates_url,"json")
+
     # Use latest file to get more up to date estimation
     solar_url = (
         "https://files.hrote.hr/files/EKO_BG/FORECAST/SOLAR/FTP/TEST_DRIVE/{0}".format(
             dates[-1]["Filename"]
         )
     )
-    response = r.get(solar_url)
-    obj = response.json()
+    obj = Reader.get_data(session, solar_url, "json")
 
     df = pd.DataFrame.from_dict(obj["FullPower"]).set_index("Timestamp")
     df.index = pd.to_datetime(df.index)  # cast strings to datetimes
@@ -63,6 +64,7 @@ def fetch_production(
     target_datetime: Optional[datetime] = None,
     logger: Logger = getLogger(__name__),
 ):
+
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 

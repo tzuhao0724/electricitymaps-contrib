@@ -9,10 +9,10 @@ import re
 
 import pandas as pd
 import requests
-
+from parsers.func import get_data
 url = "https://isep-energychart.com/en/graphics/electricityproduction/?region={region}&period_year={year}&period_month={month}&period_day={day}&period_length=1day&display_format=residual_demand"
 timezone = "Japan"
-
+reader = get_data()
 MAP_ZONE_TO_REGION_NAME = {
     "JP": "all",
     "JP-HKD": "hokkaido",
@@ -39,9 +39,9 @@ COLUMN_MAP = {
 }
 
 
-def get_data(region, year, month, day):
-    r = requests.get(url.format(region=region, year=year, month=month, day=day))
-
+def get_data_ori(region, year, month, day):
+    #r = requests.Session().get(url.format(region=region, year=year, month=month, day=day))
+    r = reader.get_data(url=url.format(region=region, year=year, month=month, day=day))
     assert r.status_code == 200, "Could not get url"
 
     jsonval_matches = re.findall(
@@ -95,7 +95,7 @@ def fetch_production(
     month = target_datetime.month
     day = target_datetime.day
 
-    df = get_data(region, year, month, day)
+    df = get_data_ori(region, year, month, day)
     df = process_data(df)
 
     data = []
@@ -140,7 +140,7 @@ def fetch_consumption(
     month = target_datetime.month
     day = target_datetime.day
 
-    df = get_data(region, year, month, day)
+    df = get_data_ori(region, year, month, day)
     df = process_data(df)
 
     data = []

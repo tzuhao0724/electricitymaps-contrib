@@ -8,11 +8,15 @@ import arrow
 import numpy as np
 from PIL import Image
 from requests import Session
-
+from parsers.func import get_data
 URL = "http://194.110.178.135/grafik/stamnat.php"
 SOURCE = "kraftnat.ax"
 TZ = "Europe/Mariehamn"
-
+class get_data_AX(get_data):
+    def get_data(self,session=None,url:str=" ",Format:str = None):
+        r= session or Session()
+        r = r.get(url,stream=True).raw
+        return r
 
 def _get_masks(session=None):
     Minus = np.array(
@@ -893,8 +897,10 @@ def _fetch_data(session: Optional[Session] = None) -> dict:
 
     # Download the updating image from Kraftnät Åland
     r = session or Session()
+    reader = get_data_AX()
+    r = reader.get_data(session,URL)
 
-    im = Image.open(r.get(URL, stream=True).raw)
+    im = Image.open(r)
     # Get timestamp
     fetchtime = arrow.utcnow().floor("second").to(TZ)
 

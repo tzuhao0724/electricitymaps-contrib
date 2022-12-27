@@ -8,6 +8,8 @@ import pytz
 import requests
 
 from parsers.lib.config import refetch_frequency
+from parsers.func import get_data
+reader = get_data()
 
 SVK_URL = (
     "http://www.svk.se/ControlRoom/GetProductionHistory/"
@@ -43,8 +45,8 @@ def fetch_production(
     # parse target_datetime - and convert None to now
     target_datetime = arrow.get(target_datetime).datetime
     url = SVK_URL.format(date=target_datetime.strftime("%Y-%m-%d"), zoneKey="SE")
+    data = reader.get_data(session,url,"json")
 
-    data = requests.get(url).json()
 
     # creating a dict looking like
     # {'2018-01-01 01:00': {'nuclear': xxx, 'hydro': ...}, ...}

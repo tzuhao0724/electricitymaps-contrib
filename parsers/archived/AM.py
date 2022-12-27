@@ -8,13 +8,14 @@ import requests
 from bs4 import BeautifulSoup
 from dateutil import parser as dparser
 from dateutil import tz
-
+from requests import Session
+from parsers.func import get_data
 # URL of the power system summary: http://epso.am/poweren.htm
 # URL of the detailled SCADA-page: http://epso.am/scada.htm
 
 SOURCE = "http://epso.am/poweren.htm"
 TZ = "Asia/Yerevan"
-
+reader = get_data()
 POWER_PLANT_MAPPING = {
     "var atom": "nuclear",  # atom = 'atomnaya elektro stantsiya'
     "var tes": "gas",  # tes = 'termalnaya elektro stantsiya' - only gas in AM
@@ -68,11 +69,12 @@ def fetch_production(
     target_datetime=None,
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> dict:
+
     if target_datetime is not None:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    r = session or requests.session()
-    response = r.get(SOURCE)
+
+    response = reader.get_data(session,SOURCE)
     response.encoding = "utf-8"
     html_doc = response.text
     start_string = "<script type='text/javascript'>"
@@ -132,8 +134,8 @@ def fetch_exchange(
 
     sorted_keys = "->".join(sorted([zone_key1, zone_key2]))
 
-    r = session or requests.session()
-    response = r.get(SOURCE)
+
+    response = reader.get_data(session,SOURCE)
     response.encoding = "utf-8"
     html_doc = response.text
     start_string = "<script type='text/javascript'>"

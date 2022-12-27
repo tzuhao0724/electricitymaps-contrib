@@ -13,7 +13,8 @@ import requests
 
 # Tablib is used to parse XLSX files
 import tablib
-
+from parsers.func import get_data
+reader = get_data()
 # please try to write PEP8 compliant code (use a linter). One of PEP8's
 # requirement is to limit your line length to 79 characters.
 
@@ -25,14 +26,14 @@ def fetch_production(
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> list:
     """Requests the last known production mix (in MW) of a given country."""
-    r = session or requests.session()
+
     if target_datetime is None:
         url = "https://www.kostt.com/Content/ViewFiles/Transparency/BasicMarketDataOnGeneration/Prodhimi%20aktual%20gjenerimi%20faktik%20i%20energjise%20elektrike.xlsx"
     else:
         # WHEN HISTORICAL DATA IS NOT AVAILABLE
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    res = r.get(url)
+    res = reader.get_data(session,url)
     assert res.status_code == 200, "XK (Kosovo) parser: GET {} returned {}".format(
         url, res.status_code
     )

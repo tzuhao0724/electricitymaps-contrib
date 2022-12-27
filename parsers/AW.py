@@ -8,6 +8,13 @@ import arrow
 from requests import Session
 
 from .lib.exceptions import ParserException
+from parsers.func import get_data
+class get_data_AX(get_data):
+    def get_data(self,session=None,url:str=" ",Format:str = None):
+        r= session or Session()
+        headers = {"user-agent": "electricitymaps.com"}
+        r = r.get(url, headers=headers).json()
+        return r
 
 
 def fetch_production(
@@ -22,9 +29,8 @@ def fetch_production(
     r = session or Session()
     url = "https://www.webaruba.com/renewable-energy-dashboard/app/rest/results.json"
     # User agent is mandatory or services answers 404
-    headers = {"user-agent": "electricitymaps.com"}
-    response = r.get(url, headers=headers)
-    aruba_json = response.json()
+    reader = get_data_AX()
+    aruba_json = reader.get_data(session,url)
     top_data = aruba_json["dashboard_top_data"]
 
     # Values currenlty used from service

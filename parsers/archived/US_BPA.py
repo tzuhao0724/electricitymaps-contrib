@@ -10,7 +10,7 @@ from io import StringIO
 import arrow
 import pandas as pd
 import requests
-
+from parsers.func import get_data
 GENERATION_URL = "https://transmission.bpa.gov/business/operations/Wind/baltwg.txt"
 
 GENERATION_MAPPING = {
@@ -19,15 +19,8 @@ GENERATION_MAPPING = {
     "Fossil/Biomass": "unknown",
     "Nuclear": "nuclear",
 }
+reader = get_data()
 
-
-def get_data(url, session=None):
-    """Returns a pandas dataframe."""
-    s = session or requests.Session()
-    req = s.get(url)
-    df = pd.read_table(StringIO(req.text), skiprows=11)
-
-    return df
 
 
 def timestamp_converter(timestamp):
@@ -94,7 +87,9 @@ def fetch_production(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    raw_data = get_data(GENERATION_URL, session=session)
+
+    req = get_data(session,GENERATION_URL)
+    raw_data = pd.read_table(StringIO(req.text), skiprows=11)
     processed_data = data_processor(raw_data, logger)
 
     data = []

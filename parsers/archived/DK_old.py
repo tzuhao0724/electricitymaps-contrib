@@ -11,7 +11,7 @@ import pytz
 from requests import Session, exceptions
 
 from parsers.lib.config import refetch_frequency
-
+from parsers.func import get_data
 from .lib.exceptions import ParserException
 
 ids = {
@@ -19,6 +19,7 @@ ids = {
     "energy_bal": "02356e88-7c4e-4ee9-b896-275d217cc1b9",
 }
 
+reader = get_data()
 
 @refetch_frequency(timedelta(days=1))
 def fetch_production(
@@ -33,8 +34,6 @@ def fetch_production(
 
     NOTE: Missing historical wind/solar data @ 2017-08-01
     """
-    r = session or Session()
-
     if zone_key not in ["DK-DK1", "DK-DK2"]:
         raise NotImplementedError(
             "fetch_production() for {} not implemented".format(zone_key)
@@ -58,7 +57,8 @@ def fetch_production(
     )
 
     url = "https://api.energidataservice.dk/datastore_search_sql?sql={}".format(sqlstr)
-    response = r.get(url)
+
+    response = reader.get_data(session,url)
 
     # raise errors for responses with an error or no data
     retry_count = 0
@@ -143,7 +143,7 @@ def fetch_exchange(
     Fetches 5-minute frequency exchange data for Danish bidding zones
     from api.energidataservice.dk
     """
-    r = session or Session()
+
     sorted_keys = "->".join(sorted([zone_key1, zone_key2]))
 
     # pick the correct zone to search
@@ -188,7 +188,9 @@ def fetch_exchange(
     )
 
     url = "https://api.energidataservice.dk/datastore_search_sql?sql={}".format(sqlstr)
-    response = r.get(url)
+
+    response = reader.get_data(session,url)
+
 
     # raise errors for responses with an error or no data
     retry_count = 0

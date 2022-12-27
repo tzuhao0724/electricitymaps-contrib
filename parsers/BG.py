@@ -7,7 +7,8 @@ from typing import Optional
 
 import arrow
 from requests import Session
-
+from parsers.func import get_data
+reader = get_data()
 TYPE_MAPPING = {  # Real values around midnight
     "АЕЦ": "nuclear",  # 2000
     "Кондензационни ТЕЦ": "coal",  # 1800
@@ -33,10 +34,9 @@ def fetch_production(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    r = session or Session()
-    url = "http://www.eso.bg/api/rabota_na_EEC_json.php"
-    res = r.get(url)
 
+    url = "http://www.eso.bg/api/rabota_na_EEC_json.php"
+    res = reader.get_data(session,url)
     assert (
         res.status_code == 200
     ), f"Exception when fetching production for {zone_key}: error when calling url={url}"

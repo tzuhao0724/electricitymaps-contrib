@@ -1,11 +1,11 @@
+from requests import Session
 class get_data():
- def get_data(self,target_datatime,Session,url,Format:str = None):
-    if target_datatime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-    r = get(url)
-    if ~Format:
-        if Format =='json':
-            r = r.json()
-        if Format=='row':
-            r = r.row()
-    return r
+    def get_data(self,session=None,url:str=" ",Format:str = None):
+        r= session or Session()
+        r = r.get(url)
+        if Format !=None:
+            if Format =='json':
+                r = r.json()
+            if Format=='raw':
+                r = r.raw()
+        return r
