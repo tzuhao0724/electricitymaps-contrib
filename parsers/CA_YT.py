@@ -7,6 +7,8 @@ from typing import Optional
 import arrow
 from bs4 import BeautifulSoup
 from requests import Session
+from parsers.func import get_data
+reader = get_data()
 
 timezone = "America/Whitehorse"
 
@@ -51,13 +53,9 @@ def fetch_production(
 
     There is also a small 0.81 MW wind farm, its current generation is not available.
     """
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-
-    requests_obj = session or Session()
 
     url = "http://www.yukonenergy.ca/consumption/chart_current.php?chart=current&width=420"
-    response = requests_obj.get(url)
+    response = reader.get_data_warn(session=session,url=url,target_datetime=target_datetime)
 
     soup = BeautifulSoup(response.text, "html.parser")
 

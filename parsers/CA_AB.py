@@ -22,7 +22,9 @@ from parsers.lib import validation
 from parsers.func import get_data
 
 class get_data_CA_AB(get_data):
-    def get_data(self,session=None,url:str=" ",Format:str = None):
+    def get_data_warn(self,session=None,url:str=" ",Format:str = None,target_datetime=None):
+        if target_datetime is not None:
+            raise NotImplementedError("This parser is not yet able to parse past dates")
         r= session or Session()
         r = r.get(url, params={"contentType": "csv"})
         return r
@@ -42,9 +44,8 @@ def fetch_exchange(
     logger: Logger = getLogger(__name__),
 ) -> dict:
     """Request the last known power exchange (in MW) between two countries."""
-    if target_datetime:
-        raise NotImplementedError("Currently unable to scrape historical data")
-    response = reader.get_data(session,f"{URL_STRING}/CSDReportServlet")
+
+    response = reader.get_data_warn(session,f"{URL_STRING}/CSDReportServlet",target_datetime=target_datetime)
     interchange = dict(csv.reader(response.text.split("\r\n\r\n")[4].splitlines()))
     flows = {
         f"{DEFAULT_ZONE_KEY}->CA-BC": interchange["British Columbia"],
@@ -70,9 +71,7 @@ def fetch_price(
     logger: Logger = getLogger(__name__),
 ) -> list:
     """Request the last known power price of a given country."""
-    if target_datetime:
-        raise NotImplementedError("Currently unable to scrape historical data")
-    response = reader.get_data(session, f"{URL_STRING}/SMPriceReportServlet")
+    response = reader.get_data_warn(session, f"{URL_STRING}/SMPriceReportServlet",target_datetime=target_datetime)
     return [
         {
             "currency": "CAD",
@@ -93,9 +92,7 @@ def fetch_production(
     logger: Logger = getLogger(__name__),
 ) -> Dict[str, Any]:
     """Request the last known production mix (in MW) of a given country."""
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-    response = reader.get_data(session, f"{URL_STRING}/CSDReportServlet")
+    response = reader.get_data_warn(session, f"{URL_STRING}/CSDReportServlet",target_datetime=target_datetime)
     generation = {
         row[0]: {
             "MC": float(row[1]),  # maximum capability

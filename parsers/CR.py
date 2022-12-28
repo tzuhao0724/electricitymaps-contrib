@@ -10,6 +10,8 @@ import arrow
 import pandas as pd
 from bs4 import BeautifulSoup
 from requests import Session
+from parsers.func import get_data
+reader = get_data()
 
 TIMEZONE = "America/Costa_Rica"
 DATE_FORMAT = "DD/MM/YYYY"
@@ -201,9 +203,8 @@ def fetch_production(
         return None
 
     # Do not use existing session as some amount of cache is taking place
-    r = Session()
     url = "https://apps.grupoice.com/CenceWeb/CencePosdespachoNacional.jsf"
-    response = r.get(url)
+    response = reader.get_data(session,url)
 
     soup = BeautifulSoup(response.text, "html.parser")
     jsf_view_state = soup.find("input", {"name": "javax.faces.ViewState"})["value"]

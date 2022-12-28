@@ -6,6 +6,8 @@ from typing import Optional
 
 import arrow
 from requests import Session
+from parsers.func import get_data
+reader = get_data()
 
 PRODUCTION_MAPPING = {
     "wind": "wind_turbines",
@@ -15,10 +17,9 @@ PRODUCTION_MAPPING = {
 
 
 def _fetch_data(session: Optional[Session] = None):
-    r = session or Session()
+
     url = "http://bornholm.powerlab.dk/visualizer/latestdata"
-    response = r.get(url)
-    obj = response.json()
+    obj = reader.get_data(session,url,"json")
     return obj
 
 

@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
 from requests import Session
+from parsers.func import get_data
+reader = get_data()
 
 # This parser gets hourly electricity generation data from oc.org.do for the Dominican Republic.
 # The data is in MWh but since it is updated hourly we can view it as MW.
@@ -88,15 +90,16 @@ thermal_plants = {
 }
 
 
-def get_data(session: Optional[Session] = None) -> list:
+def get_data_DO(session: Optional[Session] = None) -> list:
     """
     Makes a request to source url.
     Finds main table and creates a list of all table elements in string format.
     """
 
     data = []
-    s = session or Session()
-    data_req = s.get(url)
+
+    data_req = reader.get_data(session,url)
+
     soup = BeautifulSoup(data_req.content, "lxml")
 
     tbs = soup.find("table", id="PostdespachoUnidadesTermicasGrid_DXMainTable")
@@ -295,7 +298,7 @@ def fetch_production(
     if target_datetime:
         raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    dat = data_formatter(get_data(session=session))
+    dat = data_formatter(get_data_DO(session=session))
     tot = data_parser(dat["totals"])
     th = data_parser(dat["thermal"])
     thermal = thermal_production(th, logger)

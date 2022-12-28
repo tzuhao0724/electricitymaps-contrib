@@ -84,11 +84,7 @@ def fetch_production(
 ) -> list:
     """Requests the last known production mix (in MW) of a given zone."""
 
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-
-
-    req = get_data(session,GENERATION_URL)
+    req = reader.get_data_warn(session,GENERATION_URL,target_datetime=target_datetime)
     raw_data = pd.read_table(StringIO(req.text), skiprows=11)
     processed_data = data_processor(raw_data, logger)
 

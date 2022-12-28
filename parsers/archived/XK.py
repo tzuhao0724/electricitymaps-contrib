@@ -27,13 +27,10 @@ def fetch_production(
 ) -> list:
     """Requests the last known production mix (in MW) of a given country."""
 
-    if target_datetime is None:
-        url = "https://www.kostt.com/Content/ViewFiles/Transparency/BasicMarketDataOnGeneration/Prodhimi%20aktual%20gjenerimi%20faktik%20i%20energjise%20elektrike.xlsx"
-    else:
-        # WHEN HISTORICAL DATA IS NOT AVAILABLE
-        raise NotImplementedError("This parser is not yet able to parse past dates")
+    url = "https://www.kostt.com/Content/ViewFiles/Transparency/BasicMarketDataOnGeneration/Prodhimi%20aktual%20gjenerimi%20faktik%20i%20energjise%20elektrike.xlsx"
 
-    res = reader.get_data(session,url)
+
+    res = reader.get_data_warn(session=session,url= url,target_datetime=target_datetime)
     assert res.status_code == 200, "XK (Kosovo) parser: GET {} returned {}".format(
         url, res.status_code
     )

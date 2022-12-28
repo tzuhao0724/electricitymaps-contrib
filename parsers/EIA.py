@@ -20,6 +20,8 @@ from parsers.ENTSOE import merge_production_outputs
 from parsers.lib.config import refetch_frequency
 from parsers.lib.utils import get_token
 from parsers.lib.validation import validate
+from parsers.func import get_data
+reader = get_data()
 
 # Reverse exchanges need to be multiplied by -1, since they are reported in the opposite direction
 REVERSE_EXCHANGES = [
@@ -561,9 +563,7 @@ def _fetch(
     else:
         url = f"{url_prefix}&api_key={API_KEY}&sort[0][column]=period&sort[0][direction]=desc&length=24"
 
-    s = session or Session()
-    req = s.get(url)
-    raw_data = req.json()
+    raw_data = reader.get_data(session,url,"json")
     if raw_data.get("response", {}).get("data", None) is None:
         return []
     return [

@@ -16,6 +16,8 @@ from parsers.lib.config import refetch_frequency
 
 from .lib.exceptions import ParserException
 from .lib.validation import validate
+from parsers.func import get_data
+reader = get_data()
 
 # Historical API
 API_BASE_URL = "https://sipub.coordinador.cl/api/v1/recursos/generacion_centrales_tecnologia_horario?"
@@ -39,10 +41,10 @@ TYPE_MAPPING = {
 
 def get_data_live(session: Optional[Session], logger: Logger):
     """Requests live generation data in json format."""
+    json_total = reader.get_data(session,API_BASE_URL_LIVE_TOT,"json")
 
-    s = session or Session()
-    json_total = s.get(API_BASE_URL_LIVE_TOT).json()
-    json_ren = s.get(API_BASE_URL_LIVE_REN).json()
+    json_ren = reader.get_data(session,API_BASE_URL_LIVE_REN,"json")
+
 
     return json_total, json_ren
 

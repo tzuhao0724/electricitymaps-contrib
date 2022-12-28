@@ -31,12 +31,8 @@ def fetch_production(
     logger: Logger = getLogger(__name__),
 ) -> dict:
     """Requests the last known production mix (in MW) of a given country."""
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-
-
     url = "http://www.eso.bg/api/rabota_na_EEC_json.php"
-    res = reader.get_data(session,url)
+    res = reader.get_data_warn(session,url,target_datetime=target_datetime)
     assert (
         res.status_code == 200
     ), f"Exception when fetching production for {zone_key}: error when calling url={url}"

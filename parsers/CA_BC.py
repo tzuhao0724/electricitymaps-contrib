@@ -22,12 +22,8 @@ def fetch_exchange(
     logger: Logger = getLogger(__name__),
 ) -> dict:
     """Requests the last known power exchange (in MW) between two countries."""
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-
-
     url = "https://www.bchydro.com/bctc/system_cms/actual_flow/latest_values.txt"
-    response = reader.get_data(session,url)
+    response = reader.get_data_warn(session,url,target_datetime=target_datetime)
     obj = response.text.split("\r\n")[1].replace("\r", "").split(",")
 
     datetime = arrow.get(

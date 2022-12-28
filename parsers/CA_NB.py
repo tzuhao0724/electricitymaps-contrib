@@ -10,7 +10,8 @@ import arrow
 # BeautifulSoup is used to parse HTML to get information
 from bs4 import BeautifulSoup
 from requests import Session
-
+from parsers.func import get_data
+reader = get_data()
 timezone = "Canada/Atlantic"
 
 
@@ -23,7 +24,7 @@ def _get_new_brunswick_flows(requests_obj):
     """
 
     url = "https://tso.nbpower.com/Public/en/SystemInformation_realtime.asp"
-    response = requests_obj.get(url)
+    response = reader.get_data(requests_obj,url)
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -99,8 +100,7 @@ def fetch_exchange(
 
     sorted_zone_keys = "->".join(sorted([zone_key1, zone_key2]))
 
-    requests_obj = session or Session()
-    flows = _get_new_brunswick_flows(requests_obj)
+    flows = _get_new_brunswick_flows(session)
 
     # In this source, positive values are exports and negative are imports.
     # In expected result, "net" represents an export.

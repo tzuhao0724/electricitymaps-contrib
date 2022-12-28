@@ -155,10 +155,7 @@ def fetch_region_exchange(
     logger: Logger = getLogger(__name__),
 ) -> dict:
     """Requests the last known power exchange (in MW) between two Brazilian regions."""
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-
-    data = reader.get_data(session,URL)
+    data = reader.get_data_warn(session,URL,target_datetime=target_datetime)
     dt = arrow.get(data["Data"]).datetime
     sorted_regions = "->".join(sorted([zone_key1, zone_key2]))
 

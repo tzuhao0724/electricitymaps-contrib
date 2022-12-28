@@ -6,7 +6,8 @@ from typing import Optional
 # The arrow library is used to handle datetimes
 import arrow
 from requests import Session
-
+from parsers.func import get_data
+reader = get_data()
 PRODUCTION_URL = "https://www.hydroquebec.com/data/documents-donnees/donnees-ouvertes/json/production.json"
 CONSUMPTION_URL = "https://www.hydroquebec.com/data/documents-donnees/donnees-ouvertes/json/demande.json"
 # Reluctant to call it 'timezone', since we are importing 'timezone' from datetime
@@ -93,9 +94,7 @@ def fetch_consumption(
 def _fetch_quebec_production(
     session: Optional[Session] = None, logger: Logger = getLogger(__name__)
 ) -> str:
-    s = session or Session()
-    response = s.get(PRODUCTION_URL)
-
+    response = reader.get_data(session,PRODUCTION_URL)
     if not response.ok:
         logger.info(
             "CA-QC: failed getting requested production data from hydroquebec - URL {}".format(
@@ -108,8 +107,7 @@ def _fetch_quebec_production(
 def _fetch_quebec_consumption(
     session: Optional[Session] = None, logger: Logger = getLogger(__name__)
 ) -> str:
-    s = session or Session()
-    response = s.get(CONSUMPTION_URL)
+    response = reader.get_data(session,CONSUMPTION_URL)
 
     if not response.ok:
         logger.info(

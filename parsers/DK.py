@@ -6,6 +6,14 @@ from requests import Response, Session
 
 from .lib.config import refetch_frequency
 from .lib.exceptions import ParserException
+from parsers.func import get_data
+class get_data_DK(get_data):
+    def get_data(self,session=None,url:str=" ",params={}):
+        r= session or Session()
+        r = r.get(url,params=params)
+        return r
+reader = get_data_DK()
+
 
 EXCHANGE_MAPPING = {
     "DE->DK-DK1": {"id": "ExchangeGermany", "direction": 1, "priceArea": "DK1"},
@@ -28,7 +36,7 @@ def fetch_data(
     """
     Helper function to fetch data from the API.
     """
-    ses = session or Session()
+
 
     params = {
         "limit": 144,
@@ -42,10 +50,9 @@ def fetch_data(
         if target_datetime
         else None,
     }
-    response: Response = ses.get(
-        "https://api.energidataservice.dk/dataset/ElectricityProdex5MinRealtime",
-        params=params,
-    )
+    response: Response = reader.get_data(session,"https://api.energidataservice.dk/dataset/ElectricityProdex5MinRealtime",
+        params=params)
+
     if response.ok:
         data = response.json()
         if data["total"] == 0:

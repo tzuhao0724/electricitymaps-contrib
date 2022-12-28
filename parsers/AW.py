@@ -15,7 +15,7 @@ class get_data_AX(get_data):
         headers = {"user-agent": "electricitymaps.com"}
         r = r.get(url, headers=headers).json()
         return r
-
+reader = get_data_AX()
 
 def fetch_production(
     zone_key: str = "AW",
@@ -23,14 +23,10 @@ def fetch_production(
     target_datetime: Optional[datetime] = None,
     logger: Logger = getLogger(__name__),
 ):
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
-
-    r = session or Session()
     url = "https://www.webaruba.com/renewable-energy-dashboard/app/rest/results.json"
     # User agent is mandatory or services answers 404
-    reader = get_data_AX()
-    aruba_json = reader.get_data(session,url)
+
+    aruba_json = reader.get_data_warn(session,url,target_datetime)
     top_data = aruba_json["dashboard_top_data"]
 
     # Values currenlty used from service

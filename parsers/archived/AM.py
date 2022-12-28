@@ -70,11 +70,10 @@ def fetch_production(
     logger: logging.Logger = logging.getLogger(__name__),
 ) -> dict:
 
-    if target_datetime is not None:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
 
 
-    response = reader.get_data(session,SOURCE)
+
+    response = reader.get_data_warn(session,SOURCE,target_datetime=target_datetime)
     response.encoding = "utf-8"
     html_doc = response.text
     start_string = "<script type='text/javascript'>"

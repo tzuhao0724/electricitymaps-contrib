@@ -896,9 +896,9 @@ def _fetch_data(session: Optional[Session] = None) -> dict:
     mapping = _get_masks(session)
 
     # Download the updating image from Kraftnät Åland
-    r = session or Session()
+
     reader = get_data_AX()
-    r = reader.get_data(session,URL)
+    r = reader.get_data_warn(session,URL)
 
     im = Image.open(r)
     # Get timestamp

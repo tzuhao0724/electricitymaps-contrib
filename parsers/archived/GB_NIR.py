@@ -8,13 +8,23 @@ from io import StringIO
 from operator import itemgetter
 
 import pandas as pd
-import requests
+from requests import Session
 from bs4 import BeautifulSoup
 from dateutil import parser, tz
 
 from parsers.lib.config import refetch_frequency
 
 from .lib.validation import validate
+import parsers.func as PF
+class get_data_GB_NIR(PF.get_data):
+    def get_data_warn(self,session=None,url:str=" ",Format:str = None,target_datetime=None):
+        if target_datetime is not None:
+            raise NotImplementedError("This parser is not yet able to parse past dates")
+        r= session or Session()
+        r = r.get(url,Format).text
+        return r
+reader = get_data_GB_NIR()
+
 
 production_url = "http://ws.soni.ltd.uk/DownloadCentre/aspx/FuelMix.aspx"
 exchange_url = "http://ws.soni.ltd.uk/DownloadCentre/aspx/SystemOutput.aspx"
@@ -33,14 +43,15 @@ def get_data(url, target_datetime, session=None):
     Returns a response.text object.
     """
 
-    s = session or requests.Session()
+
 
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     }
 
-    pagereq = requests.get(url, headers=headers)
+    pagereq = reader.get_data(session,url,headers)
+
     soup = BeautifulSoup(pagereq.text, "html.parser")
 
     # Find and define parameters needed to send a POST request for the actual data.
