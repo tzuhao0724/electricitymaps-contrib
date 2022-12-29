@@ -12,7 +12,8 @@ from parsers.lib.config import refetch_frequency
 
 from .lib.exceptions import ParserException
 from .lib.validation import validate
-
+from parsers.func import get_data
+reader = get_data()
 MAP_GENERATION = {
     "Vand": "hydro",
     "Olie": "oil",
@@ -54,14 +55,9 @@ def fetch_production(
     target_datetime: Optional[datetime] = None,
     logger: Logger = getLogger("FO"),
 ) -> dict:
-    if target_datetime:
-        # There is a API endpoint at https://www.sev.fo/api/elproduction/last7days
-        # but it's currently returning nothing at all. Last checked on 2022-08-09
-        raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    ses = session or Session()
     url = "https://www.sev.fo/api/realtimemap/now"
-    response: Response = ses.get(url)
+    response: Response = reader.get_data_warn(session=session,url=url,target_datetime=target_datetime)
     obj = response.json()
 
     data = {

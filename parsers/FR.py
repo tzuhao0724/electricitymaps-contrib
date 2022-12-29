@@ -15,6 +15,14 @@ from parsers.lib.config import refetch_frequency
 
 from .lib.utils import get_token
 from .lib.validation import validate, validate_production_diffs
+from parsers.func import get_data
+class get_data_FR(get_data):
+    def get_data(self,session=None,url:str=" ",Format = None,pasmer = {}):
+        r= session or Session()
+        r = r.get(url,params=pasmer)
+        return r.content
+
+reader = get_data_FR()
 
 API_ENDPOINT = "https://opendata.reseaux-energies.fr/api/records/1.0/search/"
 
@@ -55,7 +63,7 @@ def fetch_production(
         to = arrow.now(tz="Europe/Paris")
 
     # setup request
-    r = session or Session()
+
     formatted_from = to.shift(days=-1).format("YYYY-MM-DDTHH:mm")
     formatted_to = to.format("YYYY-MM-DDTHH:mm")
 
@@ -71,8 +79,9 @@ def fetch_production(
     params["apikey"] = get_token("RESEAUX_ENERGIES_TOKEN")
 
     # make request and create dataframe with response
-    response = r.get(API_ENDPOINT, params=params)
-    data = json.loads(response.content)
+    response = reader.get_data(session=session,url=API_ENDPOINT,pasmer=params)
+
+    data = json.loads(response)
     data = [d["fields"] for d in data["records"]]
     df = pd.DataFrame(data)
 

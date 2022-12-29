@@ -11,7 +11,17 @@ from requests import Response, Session
 
 from .lib.exceptions import ParserException
 from .lib.utils import get_token
+from parsers.func import get_data
 
+class get_data_ESIOS(get_data):
+    def get_data_warn(self,session=None,url:str=" ",Format:str = None,target_datetime=None,header={}):
+        if target_datetime is not None:
+            raise NotImplementedError("This parser is not yet able to parse past dates")
+        r= session or Session()
+        r = r.get(url,headers==header)
+        return r
+
+reader = get_data_ESIOS()
 
 def fetch_exchange(
     zone_key1: str = "ES",
@@ -21,13 +31,12 @@ def fetch_exchange(
     logger: Logger = getLogger(__name__),
 ) -> list:
 
-    if target_datetime:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
+
 
     # Get ESIOS token
     token = get_token("ESIOS_TOKEN")
 
-    ses = session or Session()
+
 
     # Request headers
     headers = {
@@ -44,7 +53,7 @@ def fetch_exchange(
     query = urlencode(dates)
     url = "https://api.esios.ree.es/indicators/10209?{0}".format(query)
 
-    response: Response = ses.get(url, headers=headers)
+    response: Response = reader.get_data_warn(session=session,url=url,header=headers)
     if response.status_code != 200 or not response.text:
         raise ParserException(
             "ESIOS", "Response code: {0}".format(response.status_code)
