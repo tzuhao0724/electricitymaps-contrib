@@ -10,6 +10,7 @@ from dateutil import parser as dparser
 from dateutil import tz
 from requests import Session
 from parsers.func import get_data
+from parsers.example import paeras_example
 # URL of the power system summary: http://epso.am/poweren.htm
 # URL of the detailled SCADA-page: http://epso.am/scada.htm
 
@@ -62,128 +63,126 @@ SOUP_CONTENT_VARIABLES_MAPPING = {
 
 REGEX = "[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?"
 
+class extract_data(paeras_example):
 
-def fetch_production(
-    zone_key="AM",
-    session=None,
-    target_datetime=None,
-    logger: logging.Logger = logging.getLogger(__name__),
-) -> dict:
+    def fetch_production(self,
+        zone_key="AM",
+        session=None,
+        target_datetime=None,
+        logger: logging.Logger = logging.getLogger(__name__),
+    ) -> dict:
+        response = reader.get_data_warn(session,SOURCE,target_datetime=target_datetime)
+        response.encoding = "utf-8"
+        html_doc = response.text
+        start_string = "<script type='text/javascript'>"
+        start_index = html_doc.find(start_string) + len(start_string)
+        stop_index = html_doc.find("left:")
+        soup = BeautifulSoup(html_doc[start_index:stop_index], "html.parser")
+        data_string = soup.find(text=re.compile("var"))
 
+        if data_string is None:
+            logger.warning(f"Could not parse {html_doc}")
+            raise ValueError("Empty data object scraped, cannot be parsed.")
 
+        data_split = data_string.split("\r\n")
 
+        gas_tes = re.findall(REGEX, data_split[10])
+        gas_total = float(gas_tes[0])
 
-    response = reader.get_data_warn(session,SOURCE,target_datetime=target_datetime)
-    response.encoding = "utf-8"
-    html_doc = response.text
-    start_string = "<script type='text/javascript'>"
-    start_index = html_doc.find(start_string) + len(start_string)
-    stop_index = html_doc.find("left:")
-    soup = BeautifulSoup(html_doc[start_index:stop_index], "html.parser")
-    data_string = soup.find(text=re.compile("var"))
+        hydro_ges = re.findall(REGEX, data_split[11])
+        hydro_altern = re.findall(REGEX, data_split[8])
+        hydro_total = float(hydro_ges[0]) + float(hydro_altern[0])
 
-    if data_string is None:
-        logger.warning(f"Could not parse {html_doc}")
-        raise ValueError("Empty data object scraped, cannot be parsed.")
+        nuclear_atom = re.findall(REGEX, data_split[9])
+        nuclear_total = float(nuclear_atom[0])
 
-    data_split = data_string.split("\r\n")
+        time_data = [s for s in data_split if "time2" in s][0]
+        yerevan = tz.gettz(TZ)
+        date_time = dparser.parse(
+            time_data.split()[3], default=datetime.now(yerevan), fuzzy=True
+        )
 
-    gas_tes = re.findall(REGEX, data_split[10])
-    gas_total = float(gas_tes[0])
-
-    hydro_ges = re.findall(REGEX, data_split[11])
-    hydro_altern = re.findall(REGEX, data_split[8])
-    hydro_total = float(hydro_ges[0]) + float(hydro_altern[0])
-
-    nuclear_atom = re.findall(REGEX, data_split[9])
-    nuclear_total = float(nuclear_atom[0])
-
-    time_data = [s for s in data_split if "time2" in s][0]
-    yerevan = tz.gettz(TZ)
-    date_time = dparser.parse(
-        time_data.split()[3], default=datetime.now(yerevan), fuzzy=True
-    )
-
-    # Operating solar, wind and biomass plants exist in small numbers, but are not reported yet
-    return {
-        "zoneKey": zone_key,
-        "datetime": date_time,
-        "production": {
-            "gas": gas_total,
-            "hydro": hydro_total,
-            "nuclear": nuclear_total,
-            "biomass": None,
-            "coal": 0,
-            "geothermal": 0,
-            "oil": 0,
-            "solar": None,
-            "wind": None,
-        },
-        "storage": {"hydro": 0, "battery": 0},
-        "source": SOURCE,
-    }
+        # Operating solar, wind and biomass plants exist in small numbers, but are not reported yet
+        return {
+            "zoneKey": zone_key,
+            "datetime": date_time,
+            "production": {
+                "gas": gas_total,
+                "hydro": hydro_total,
+                "nuclear": nuclear_total,
+                "biomass": None,
+                "coal": 0,
+                "geothermal": 0,
+                "oil": 0,
+                "solar": None,
+                "wind": None,
+            },
+            "storage": {"hydro": 0, "battery": 0},
+            "source": SOURCE,
+        }
 
 
-def fetch_exchange(
-    zone_key1, zone_key2, session=None, target_datetime=None, logger=None
-) -> dict:
-    """Requests the last known power exchange (in MW) between two countries."""
-    if target_datetime is not None:
-        raise NotImplementedError("This parser is not yet able to parse past dates")
+    def fetch_exchange(self,
+        zone_key1, zone_key2, session=None, target_datetime=None, logger=None
+    ) -> dict:
+        """Requests the last known power exchange (in MW) between two countries."""
+        if target_datetime is not None:
+            raise NotImplementedError("This parser is not yet able to parse past dates")
 
-    sorted_keys = "->".join(sorted([zone_key1, zone_key2]))
+        sorted_keys = "->".join(sorted([zone_key1, zone_key2]))
 
 
-    response = reader.get_data(session,SOURCE)
-    response.encoding = "utf-8"
-    html_doc = response.text
-    start_string = "<script type='text/javascript'>"
-    start_index = html_doc.find(start_string) + len(start_string)
-    stop_index = html_doc.find("left:")
-    soup = BeautifulSoup(html_doc[start_index:stop_index], "html.parser")
-    data_string = soup.find(text=re.compile("var"))
-    data_split = data_string.split("\r\n")
+        response = reader.get_data(session,SOURCE)
+        response.encoding = "utf-8"
+        html_doc = response.text
+        start_string = "<script type='text/javascript'>"
+        start_index = html_doc.find(start_string) + len(start_string)
+        stop_index = html_doc.find("left:")
+        soup = BeautifulSoup(html_doc[start_index:stop_index], "html.parser")
+        data_string = soup.find(text=re.compile("var"))
+        data_split = data_string.split("\r\n")
 
-    GE_1 = re.findall(REGEX, data_split[1])
-    GE_2 = re.findall(REGEX, data_split[2])
-    GE_3 = re.findall(REGEX, data_split[3])
-    NKR_1 = re.findall(REGEX, data_split[4])
-    NKR_2 = re.findall(REGEX, data_split[5])
-    IR_1 = re.findall(REGEX, data_split[6])
+        GE_1 = re.findall(REGEX, data_split[1])
+        GE_2 = re.findall(REGEX, data_split[2])
+        GE_3 = re.findall(REGEX, data_split[3])
+        NKR_1 = re.findall(REGEX, data_split[4])
+        NKR_2 = re.findall(REGEX, data_split[5])
+        IR_1 = re.findall(REGEX, data_split[6])
 
-    AM_NKR = float(NKR_1[0]) + float(NKR_2[0])
-    AM_GE = float(GE_1[0]) + float(GE_2[0]) + float(GE_3[0])
-    AM_IR = float(IR_1[0])
+        AM_NKR = float(NKR_1[0]) + float(NKR_2[0])
+        AM_GE = float(GE_1[0]) + float(GE_2[0]) + float(GE_3[0])
+        AM_IR = float(IR_1[0])
 
-    time_data = [s for s in data_split if "time2" in s][0]
-    yerevan = tz.gettz(TZ)
-    date_time = dparser.parse(
-        time_data.split()[3], default=datetime.now(yerevan), fuzzy=True
-    )
+        time_data = [s for s in data_split if "time2" in s][0]
+        yerevan = tz.gettz(TZ)
+        date_time = dparser.parse(
+            time_data.split()[3], default=datetime.now(yerevan), fuzzy=True
+        )
 
-    if sorted_keys == "AM->NKR":
-        netflow = -1 * AM_NKR
-    elif sorted_keys == "AM->GE":
-        netflow = -1 * AM_GE
-    elif sorted_keys == "AM->IR":
-        netflow = -1 * AM_IR
-    else:
-        raise NotImplementedError("This exchange pair is not implemented")
+        if sorted_keys == "AM->NKR":
+            netflow = -1 * AM_NKR
+        elif sorted_keys == "AM->GE":
+            netflow = -1 * AM_GE
+        elif sorted_keys == "AM->IR":
+            netflow = -1 * AM_IR
+        else:
+            raise NotImplementedError("This exchange pair is not implemented")
 
-    return {
-        "sortedZoneKeys": sorted_keys,
-        "datetime": date_time,
-        "netFlow": netflow,
-        "source": SOURCE,
-    }
+        return {
+            "sortedZoneKeys": sorted_keys,
+            "datetime": date_time,
+            "netFlow": netflow,
+            "source": SOURCE,
+        }
 
 
 if __name__ == "__main__":
+    s = extract_data()
     print("fetch_production->")
-    print(fetch_production())
+    print(s.fetch_production())
     print("fetch_exchange(AM, NKR) ->")
-    print(fetch_exchange("AM", "NKR"))
+    print(s.fetch_exchange("AM", "NKR"))
     print("fetch_exchange(AM, GE) ->")
-    print(fetch_exchange("AM", "GE"))
+    print(s.fetch_exchange("AM", "GE"))
     print("fetch_exchange(AM, IR) ->")
-    print(fetch_exchange("AM", "IR"))
+    print(s.fetch_exchange("AM", "IR"))

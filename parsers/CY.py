@@ -106,22 +106,22 @@ class CyprusParser:
         if len(data) == 0:
             self.warn("No production data returned for Cyprus")
         return data
+from parsers.example import paeras_example
+class extract_data(paeras_example):
+    def fetch_production(
+        zone_key: str = "CY",
+        session: Optional[Session] = None,
+        target_datetime: Optional[datetime] = None,
+        logger: Logger = getLogger(__name__),
+    ) -> List[Dict[str, Any]]:
+        """Requests the last known production mix (in MW) of a given country."""
+        assert zone_key == "CY"
 
+        target_datetime = target_datetime or datetime.utcnow()
 
-def fetch_production(
-    zone_key: str = "CY",
-    session: Optional[Session] = None,
-    target_datetime: Optional[datetime] = None,
-    logger: Logger = getLogger(__name__),
-) -> List[Dict[str, Any]]:
-    """Requests the last known production mix (in MW) of a given country."""
-    assert zone_key == "CY"
-
-    target_datetime = target_datetime or datetime.utcnow()
-
-    parser = CyprusParser(session or Session(), logger)
-    if isinstance(target_datetime, datetime):
-        return parser.fetch_production(target_datetime)
+        parser = CyprusParser(session or Session(), logger)
+        if isinstance(target_datetime, datetime):
+            return parser.fetch_production(target_datetime)
 
 
 if __name__ == "__main__":
@@ -130,9 +130,9 @@ if __name__ == "__main__":
     target_datetime = None
     if len(sys.argv) == 4:
         target_datetime = datetime(int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3]))
-
+    s = extract_data()
     print("fetch_production() ->")
-    fetched_production = fetch_production(target_datetime=target_datetime)
+    fetched_production = s.fetch_production(target_datetime=target_datetime)
     if isinstance(fetched_production, list):
         for datum in fetched_production:
             print(datum)

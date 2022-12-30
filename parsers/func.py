@@ -6,6 +6,7 @@ class get_data():
         if Format !=None:
             if Format =='json':
                 r = r.json()
+
             if Format=='raw':
                 r = r.raw()
         return r
