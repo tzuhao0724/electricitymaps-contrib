@@ -330,5 +330,60 @@ class paeras_example():
 
         return data
 
+    def fetch_consumption_forecast(
+        zone_key: str,
+        session: Session = Session(),
+        target_datetime: Optional[datetime] = None,
+        logger: Logger = getLogger(__name__),
+    ) -> dict:
+        return {
+            'zoneKey': zone_key,
+            'datetime': '2017-01-01T00:00:00Z',
+            'value': 0.0,
+            'source': 'mysource.com'
+        }
+
+    def fetch_generation_forecast(
+        zone_key: str,
+        session: Session = Session(),
+        target_datetime: Optional[datetime] = None,
+        logger: Logger = getLogger(__name__),
+    ) -> dict:
+        return {
+            'zoneKey': zone_key,
+            'datetime': '2017-01-01T00:00:00Z',
+            'value': 0.0,
+            'source': 'mysource.com'
+        }
+
+    def fetch_wind_solar_forecasts(
+        zone_key: str,
+        session: Session = Session(),
+        target_datetime: Optional[datetime] = None,
+        logger: Logger = getLogger(__name__),
+    ) -> dict:
+        return {
+            'zoneKey': zone_key,
+            'datetime': '2017-01-01T00:00:00Z',
+            'production': {
+                'solar': 0.0,
+                'wind': 0.0,
+            },
+            'source': 'mysource.com'
+        }
+
+    def fetch_consumption(
+        zone_key: str,
+        session: Session = Session(),
+        target_datetime: Optional[datetime] = None,
+        logger: Logger = getLogger(__name__),
+    ) -> dict:
+        return {
+            'zoneKey': zone_key,
+            'datetime': '2017-01-01T00:00:00Z',
+            'consumption': 0.0,
+            'source': 'mysource.com'
+        }
+
 
 
