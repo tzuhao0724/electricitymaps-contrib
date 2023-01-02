@@ -25,18 +25,22 @@ PARSER_KEY_TO_DICT = {
     "exchangeForecast": EXCHANGE_FORECAST_PARSERS,
 }
 
+
+
+class data_extracter():
+    def Dict_build(self,object):
+        for id, config in object.items():
+            for parser_key, v in config.get("parsers", {}).items():
+                mod_name, fun_name = v.split(".")
+                mod = importlib.import_module("parsers.%s" % mod_name)
+                mod = mod.extract_data()
+                PARSER_KEY_TO_DICT[parser_key][id] = getattr(mod, fun_name)
+
+
+extracter = data_extracter()
 # Read all zones
-for zone_id, zone_config in ZONES_CONFIG.items():
-    for parser_key, v in zone_config.get("parsers", {}).items():
-        mod_name, fun_name = v.split(".")
-        mod = importlib.import_module("parsers.%s" % mod_name)
-        mod=mod.extract_data()
-        PARSER_KEY_TO_DICT[parser_key][zone_id] = getattr(mod, fun_name)
+extracter.Dict_build(ZONES_CONFIG)
 
 # Read all exchanges
-for exchange_id, exchange_config in EXCHANGES_CONFIG.items():
-    for parser_key, v in exchange_config.get("parsers", {}).items():
-        mod_name, fun_name = v.split(".")
-        mod = importlib.import_module("parsers.%s" % mod_name)
-        mod = mod.extract_data()
-        PARSER_KEY_TO_DICT[parser_key][exchange_id] = getattr(mod, fun_name)
+extracter.Dict_build(EXCHANGES_CONFIG)
+
