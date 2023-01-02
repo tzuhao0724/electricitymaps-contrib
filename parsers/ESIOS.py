@@ -18,7 +18,7 @@ class get_data_ESIOS(get_data):
         if target_datetime is not None:
             raise NotImplementedError("This parser is not yet able to parse past dates")
         r= session or Session()
-        r = r.get(url,headers==header)
+        r = r.get(url,header=header)
         return r
 
 reader = get_data_ESIOS()
